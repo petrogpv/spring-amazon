@@ -48,7 +48,7 @@ public class TodoServiceImpl implements TodoService {
     metadata.put("Content-Type", file.getContentType());
     metadata.put("Content-Length", String.valueOf(file.getSize()));
     //Save Image in S3 and then save Todo in the database
-    String path = String.format("%s/%s", bucketName, UUID.randomUUID());
+    String path = String.format("%s/%s", bucketName, "images");
     String fileName = String.format("%s", file.getOriginalFilename());
     try {
       fileStore.upload(path, fileName, Optional.of(metadata), file.getInputStream());
