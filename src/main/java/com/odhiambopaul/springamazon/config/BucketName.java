@@ -6,6 +6,6 @@ import lombok.Getter;
 @AllArgsConstructor
 @Getter
 public enum BucketName {
-    TODO_IMAGE("spring-amazon-storage");
+    TODO_IMAGE("cloudx-spring-amazon-storage");
     private final String bucketName;
 }
