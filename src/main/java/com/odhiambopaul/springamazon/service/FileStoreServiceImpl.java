@@ -16,7 +16,7 @@ import java.util.Optional;
 
 @AllArgsConstructor
 @Service
-public class FileStore {
+public class FileStoreServiceImpl implements FileStoreService {
     private final AmazonS3 amazonS3;
 
     public void upload(String path,
