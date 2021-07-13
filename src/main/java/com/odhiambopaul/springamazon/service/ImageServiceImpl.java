@@ -1,12 +1,13 @@
 package com.odhiambopaul.springamazon.service;
 
-import static org.apache.http.entity.ContentType.IMAGE_BMP;
-import static org.apache.http.entity.ContentType.IMAGE_GIF;
-import static org.apache.http.entity.ContentType.IMAGE_JPEG;
-import static org.apache.http.entity.ContentType.IMAGE_PNG;
-
 import com.odhiambopaul.springamazon.domain.Image;
 import com.odhiambopaul.springamazon.repositories.ImageRepository;
+import lombok.RequiredArgsConstructor;
+import org.apache.commons.io.FilenameUtils;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -17,11 +18,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
-import lombok.RequiredArgsConstructor;
-import org.apache.commons.io.FilenameUtils;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
+
+import static org.apache.http.entity.ContentType.IMAGE_BMP;
+import static org.apache.http.entity.ContentType.IMAGE_GIF;
+import static org.apache.http.entity.ContentType.IMAGE_JPEG;
+import static org.apache.http.entity.ContentType.IMAGE_PNG;
 
 @Service
 @RequiredArgsConstructor
@@ -80,9 +81,11 @@ public class ImageServiceImpl implements ImageService {
   }
 
   @Override
-  public byte[] deleteImageByName(String imageName) {
-    Image image = repository.deleteByImageFileName(imageName);
-    return fileStore.download(image.getImagePath(), image.getImageFileName());
+
+  public Long deleteImageByName(String imageName) {
+    Image image = repository.findByImageFileName(imageName);
+    fileStore.delete(image.getImagePath(), image.getImageFileName());
+    return repository.deleteByImageFileName(imageName);
   }
 
   @Override

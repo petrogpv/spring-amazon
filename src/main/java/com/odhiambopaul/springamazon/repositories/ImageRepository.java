@@ -6,5 +6,5 @@ import org.springframework.data.repository.CrudRepository;
 public interface ImageRepository extends CrudRepository<Image, Long> {
     Image findByImageFileName(String imageFileName);
 
-    Image deleteByImageFileName(String imageFileName);
+    Long deleteByImageFileName(String imageFileName);
 }

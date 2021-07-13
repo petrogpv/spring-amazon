@@ -10,7 +10,7 @@ public interface ImageService {
 
     byte[] downloadImageByName(String imageName);
 
-    byte[] deleteImageByName(String imageName);
+    Long deleteImageByName(String imageName);
 
     List<Image> getAllImages();
 

@@ -2,7 +2,6 @@ package com.odhiambopaul.springamazon.controllers;
 
 import com.odhiambopaul.springamazon.domain.Image;
 import com.odhiambopaul.springamazon.service.ImageService;
-import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -17,8 +16,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+
 @RestController
-@RequestMapping("api/v1/todo")
+@RequestMapping("api/v1/image")
 @AllArgsConstructor
 @CrossOrigin("*")
 public class ImageController {
@@ -52,10 +53,8 @@ public class ImageController {
   }
 
   @DeleteMapping(value = "/{name}")
-  public byte[] deleteTodoImage(@PathVariable("name") String name) {
-    return service.deleteImageByName(name);
+  public ResponseEntity<String> deleteTodoImage(@PathVariable("name") String name) {
+    Long result = service.deleteImageByName(name);
+    return new ResponseEntity<>(String.format("Image '%s' was successfully deleted. Deleted: %d", name, result), HttpStatus.OK);
   }
-
-
-
 }

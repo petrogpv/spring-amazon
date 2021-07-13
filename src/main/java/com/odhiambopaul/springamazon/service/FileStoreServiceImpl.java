@@ -2,6 +2,7 @@ package com.odhiambopaul.springamazon.service;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.DeleteObjectRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
@@ -43,6 +44,14 @@ public class FileStoreServiceImpl implements FileStoreService {
             return IOUtils.toByteArray(objectContent);
         } catch (AmazonServiceException | IOException e) {
             throw new IllegalStateException("Failed to download the file", e);
+        }
+    }
+
+    public void delete(String path, String key) {
+        try {
+            amazonS3.deleteObject(new DeleteObjectRequest(path, key));
+        } catch (AmazonServiceException e) {
+            throw new IllegalStateException("Failed to delete the file", e);
         }
     }
 
