@@ -1,5 +1,7 @@
 package com.odhiambopaul.springamazon.controllers;
 
+import com.amazonaws.services.sns.model.SubscribeResult;
+import com.amazonaws.services.sns.model.UnsubscribeResult;
 import com.odhiambopaul.springamazon.domain.Image;
 import com.odhiambopaul.springamazon.service.ImageService;
 import lombok.AllArgsConstructor;
@@ -56,5 +58,15 @@ public class ImageController {
   public ResponseEntity<String> deleteTodoImage(@PathVariable("name") String name) {
     Long result = service.deleteImageByName(name);
     return new ResponseEntity<>(String.format("Image '%s' was successfully deleted. Deleted: %d", name, result), HttpStatus.OK);
+  }
+
+  @PostMapping("/email")
+  public ResponseEntity<SubscribeResult> subscribeEmail(@RequestParam(name = "email") String email) {
+    return new ResponseEntity<>(service.subscribeEmail(email), HttpStatus.OK);
+  }
+
+  @DeleteMapping("/email")
+  public ResponseEntity<UnsubscribeResult> unsubscribeEmail(@RequestParam(name = "email") String email) {
+    return new ResponseEntity<>(service.unsubscribeEmail(email), HttpStatus.OK);
   }
 }

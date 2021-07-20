@@ -15,4 +15,8 @@ public interface ImageService {
     List<Image> getAllImages();
 
     byte[] getRandomImage();
+
+    SubscribeResult subscribeEmail(String email);
+
+    UnsubscribeResult unsubscribeEmail(String email);
 }
