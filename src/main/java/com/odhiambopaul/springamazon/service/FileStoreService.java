@@ -6,7 +6,7 @@ import java.util.Optional;
 
 public interface FileStoreService {
 
-  void upload(String path,
+  String upload(String path,
       String fileName,
       Optional<Map<String, String>> optionalMetaData,
       InputStream inputStream);

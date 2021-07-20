@@ -20,7 +20,7 @@ import java.util.Optional;
 public class FileStoreServiceImpl implements FileStoreService {
     private final AmazonS3 amazonS3;
 
-    public void upload(String path,
+    public String upload(String path,
                        String fileName,
                        Optional<Map<String, String>> optionalMetaData,
                        InputStream inputStream) {
@@ -32,6 +32,7 @@ public class FileStoreServiceImpl implements FileStoreService {
         });
         try {
             amazonS3.putObject(path, fileName, inputStream, objectMetadata);
+            return amazonS3.getUrl(path, fileName).toString();
         } catch (AmazonServiceException e) {
             throw new IllegalStateException("Failed to upload the file", e);
         }

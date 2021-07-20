@@ -23,6 +23,7 @@ public class Image {
   private String imagePath;
   private String imageFileName;
   private String imageExtension;
+  private String url;
   private Long imageSize;
   private String updateDate;
 

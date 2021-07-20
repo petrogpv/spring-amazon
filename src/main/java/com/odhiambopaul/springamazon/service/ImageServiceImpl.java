@@ -76,14 +76,14 @@ public class ImageServiceImpl implements ImageService {
 
     String path = String.format("%s/%s", bucketName, "images");
     try {
-      fileStore
-          .upload(path, file.getOriginalFilename(), Optional.of(metadata), file.getInputStream());
+      String url = fileStore.upload(path, file.getOriginalFilename(), Optional.of(metadata), file.getInputStream());
 
       Image image = Image.builder()
           .description(description)
           .imagePath(path)
           .imageFileName(file.getOriginalFilename())
           .imageExtension(FilenameUtils.getExtension(file.getOriginalFilename()))
+              .url(url)
           .imageSize(file.getSize())
           .updateDate(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")))
           .build();
@@ -138,7 +138,7 @@ public class ImageServiceImpl implements ImageService {
     String arn = subscriptions.stream()
             .filter(subs -> subs.getProtocol().equalsIgnoreCase("email") && subs.getEndpoint().equals(email))
             .findFirst()
-            .map(Subscription::getTopicArn)
+            .map(Subscription::getSubscriptionArn)
             .orElse("");
 
     final UnsubscribeRequest unSubscribeRequest = new UnsubscribeRequest(arn);
