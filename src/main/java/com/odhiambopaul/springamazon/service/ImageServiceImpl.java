@@ -1,13 +1,5 @@
 package com.odhiambopaul.springamazon.service;
 
-import static org.apache.http.entity.ContentType.IMAGE_BMP;
-import static org.apache.http.entity.ContentType.IMAGE_GIF;
-import static org.apache.http.entity.ContentType.IMAGE_JPEG;
-import static org.apache.http.entity.ContentType.IMAGE_PNG;
-
-import com.amazonaws.services.apigateway.AmazonApiGatewayClient;
-import com.amazonaws.services.apigateway.model.GetMethodRequest;
-import com.amazonaws.services.apigateway.model.GetMethodResult;
 import com.amazonaws.services.lambda.AWSLambdaClient;
 import com.amazonaws.services.lambda.model.InvokeRequest;
 import com.amazonaws.services.lambda.model.InvokeResult;
@@ -23,7 +15,14 @@ import com.amazonaws.services.sqs.model.SendMessageRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.odhiambopaul.springamazon.domain.Image;
 import com.odhiambopaul.springamazon.repositories.ImageRepository;
-import java.io.ByteArrayInputStream;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FilenameUtils;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -34,13 +33,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.FilenameUtils;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
+
+import static org.apache.http.entity.ContentType.IMAGE_BMP;
+import static org.apache.http.entity.ContentType.IMAGE_GIF;
+import static org.apache.http.entity.ContentType.IMAGE_JPEG;
+import static org.apache.http.entity.ContentType.IMAGE_PNG;
 
 @Service
 @RequiredArgsConstructor
@@ -53,7 +50,6 @@ public class ImageServiceImpl implements ImageService {
   private final AmazonSNSClient amazonSNSClient;
   private final AmazonSQSClient amazonSQSClient;
   private final AWSLambdaClient awsLambdaClient;
-  private final AmazonApiGatewayClient amazonApiGatewayClient;
 
   private final ObjectMapper mapper;
 
@@ -212,7 +208,7 @@ public class ImageServiceImpl implements ImageService {
     try {
       InvokeRequest invokeRequest = new InvokeRequest()
           .withFunctionName(lambdaArn)
-          .withPayload("{\n \"Hello \": \"Paris\",\n}");
+          .withPayload("{\n \"detail-type \": \"web application\"\n}");
       log.info("invoke lambda {} request, {}", lambdaArn, invokeRequest.toString());
 
       InvokeResult invokeResult = awsLambdaClient.invoke(invokeRequest);
@@ -224,25 +220,5 @@ public class ImageServiceImpl implements ImageService {
       return e.getMessage();
     }
 
-  }
-
-  @Override
-  public String triggerGateway() {
-    try {
-
-      //TODO fix
-      GetMethodRequest methodRequest = new GetMethodRequest();
-      methodRequest.setResourceId("");
-      methodRequest.setRestApiId("");
-      methodRequest.setHttpMethod("");
-
-      GetMethodResult method = amazonApiGatewayClient.getMethod(methodRequest);
-      log.info("triggerGateway result - {}", method.toString());
-
-      return method.toString();
-    } catch (Exception e) {
-      log.error("triggerGateway error - {}", e.getMessage());
-      return e.getMessage();
-    }
   }
 }

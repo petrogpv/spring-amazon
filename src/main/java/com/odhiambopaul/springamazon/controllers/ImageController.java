@@ -79,15 +79,9 @@ public class ImageController {
     return new ResponseEntity<>(service.unsubscribeEmail(email), HttpStatus.OK);
   }
 
-  @GetMapping("/lambda")
+  @PostMapping("/notify")
   public ResponseEntity<String> triggerLambda() {
     log.info("Controller request received - triggerLambda");
     return new ResponseEntity<>(service.triggerLambda(), HttpStatus.OK);
-  }
-
-  @GetMapping("/gateway")
-  public ResponseEntity<String> triggerGateway() {
-    log.info("Controller request received - triggerGateway");
-    return new ResponseEntity<>(service.triggerGateway(), HttpStatus.OK);
   }
 }

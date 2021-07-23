@@ -23,6 +23,4 @@ public interface ImageService {
     UnsubscribeResult unsubscribeEmail(String email);
 
     String triggerLambda();
-
-    String triggerGateway();
 }
