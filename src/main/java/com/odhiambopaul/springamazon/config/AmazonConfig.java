@@ -3,6 +3,8 @@ package com.odhiambopaul.springamazon.config;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.services.lambda.AWSLambdaClient;
+import com.amazonaws.services.lambda.AWSLambdaClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.sns.AmazonSNSClient;
@@ -69,6 +71,17 @@ public class AmazonConfig {
                 .withCredentials(new AWSStaticCredentialsProvider(
                         new BasicAWSCredentials(accessKeyId, secretAccessKey)))
                 .build();
+    }
+
+    @Bean
+    public AWSLambdaClient awsLambdaClient() {
+        return (AWSLambdaClient) AWSLambdaClientBuilder
+            .standard()
+            .withRegion(region)
+            .withCredentials(new AWSStaticCredentialsProvider(
+                new BasicAWSCredentials(accessKeyId, secretAccessKey)))
+            .build();
+
     }
 
     @Bean

@@ -5,6 +5,7 @@ import com.amazonaws.services.sns.model.UnsubscribeResult;
 import com.odhiambopaul.springamazon.domain.Image;
 import com.odhiambopaul.springamazon.service.ImageService;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -24,22 +25,26 @@ import java.util.List;
 @RequestMapping("api/v1/image")
 @AllArgsConstructor
 @CrossOrigin("*")
+@Slf4j
 public class ImageController {
 
   ImageService service;
 
   @GetMapping
   public ResponseEntity<List<Image>> getTodos() {
+    log.info("Controller request received - getAllImages");
     return new ResponseEntity<>(service.getAllImages(), HttpStatus.OK);
   }
 
   @GetMapping(value = "/{name}")
   public byte[] downloadTodoImage(@PathVariable("name") String name) {
+    log.info("Controller request received - downloadImageByName - {}", name);
     return service.downloadImageByName(name);
   }
 
   @GetMapping(value = "/random")
   public byte[] getRandomImage() {
+    log.info("Controller request received - getRandomImage");
     return service.getRandomImage();
   }
 
@@ -51,22 +56,32 @@ public class ImageController {
   public ResponseEntity<Image> saveTodo(
       @RequestParam(name = "description", required = false) String description,
       @RequestParam("file") MultipartFile file) {
+    log.info("Controller request received - uploadImage - {}", file.getOriginalFilename());
     return new ResponseEntity<>(service.uploadImage(description, file), HttpStatus.OK);
   }
 
   @DeleteMapping(value = "/{name}")
   public ResponseEntity<String> deleteTodoImage(@PathVariable("name") String name) {
+    log.info("Controller request received - deleteImageByName - {}", name);
     Long result = service.deleteImageByName(name);
     return new ResponseEntity<>(String.format("Image '%s' was successfully deleted. Deleted: %d", name, result), HttpStatus.OK);
   }
 
   @PostMapping("/email")
   public ResponseEntity<SubscribeResult> subscribeEmail(@RequestParam(name = "email") String email) {
+    log.info("Controller request received - subscribeEmail - {}", email);
     return new ResponseEntity<>(service.subscribeEmail(email), HttpStatus.OK);
   }
 
   @DeleteMapping("/email")
   public ResponseEntity<UnsubscribeResult> unsubscribeEmail(@RequestParam(name = "email") String email) {
+    log.info("Controller request received - unsubscribeEmail - {}", email);
     return new ResponseEntity<>(service.unsubscribeEmail(email), HttpStatus.OK);
+  }
+
+  @GetMapping("/lambda")
+  public ResponseEntity<String> triggerLambda() {
+    log.info("Controller request received - triggerLambda");
+    return new ResponseEntity<>(service.triggerLambda(), HttpStatus.OK);
   }
 }

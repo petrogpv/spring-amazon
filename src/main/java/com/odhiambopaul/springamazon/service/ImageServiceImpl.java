@@ -1,5 +1,13 @@
 package com.odhiambopaul.springamazon.service;
 
+import static org.apache.http.entity.ContentType.IMAGE_BMP;
+import static org.apache.http.entity.ContentType.IMAGE_GIF;
+import static org.apache.http.entity.ContentType.IMAGE_JPEG;
+import static org.apache.http.entity.ContentType.IMAGE_PNG;
+
+import com.amazonaws.services.lambda.AWSLambdaClient;
+import com.amazonaws.services.lambda.model.InvokeRequest;
+import com.amazonaws.services.lambda.model.InvokeResult;
 import com.amazonaws.services.sns.AmazonSNSClient;
 import com.amazonaws.services.sns.model.ListSubscriptionsResult;
 import com.amazonaws.services.sns.model.SubscribeRequest;
@@ -12,13 +20,6 @@ import com.amazonaws.services.sqs.model.SendMessageRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.odhiambopaul.springamazon.domain.Image;
 import com.odhiambopaul.springamazon.repositories.ImageRepository;
-import lombok.RequiredArgsConstructor;
-import org.apache.commons.io.FilenameUtils;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -29,21 +30,25 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
-
-import static org.apache.http.entity.ContentType.IMAGE_BMP;
-import static org.apache.http.entity.ContentType.IMAGE_GIF;
-import static org.apache.http.entity.ContentType.IMAGE_JPEG;
-import static org.apache.http.entity.ContentType.IMAGE_PNG;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FilenameUtils;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Slf4j
 public class ImageServiceImpl implements ImageService {
 
   private final FileStoreServiceImpl fileStore;
   private final ImageRepository repository;
   private final AmazonSNSClient amazonSNSClient;
   private final AmazonSQSClient amazonSQSClient;
+  private final AWSLambdaClient awsLambdaClient;
   private final ObjectMapper mapper;
 
 
@@ -55,6 +60,9 @@ public class ImageServiceImpl implements ImageService {
 
   @Value("${aws.sqs.url}")
   private String sqsUrl;
+
+  @Value("aws.lambda.arn")
+  private String lambdaArn;
 
   @Override
   public Image uploadImage(String description, MultipartFile file) {
@@ -94,54 +102,121 @@ public class ImageServiceImpl implements ImageService {
 
       return repository.findByImageFileName(image.getImageFileName());
     } catch (RuntimeException | IOException e) {
+      log.error("Failed to upload file, {}", e.getMessage());
       throw new IllegalStateException("Failed to upload file", e);
     }
   }
 
   @Override
   public byte[] downloadImageByName(String imageName) {
-    Image image = repository.findByImageFileName(imageName);
-    return fileStore.download(image.getImagePath(), image.getImageFileName());
+    try {
+      Image image = repository.findByImageFileName(imageName);
+      byte[] download = fileStore.download(image.getImagePath(), image.getImageFileName());
+      log.info("downloaded image, {} ", image.getImageFileName());
+
+      return download;
+    } catch (Exception e) {
+      log.error("Failed to download file, {}", e.getMessage());
+      throw e;
+    }
   }
 
   @Override
   public Long deleteImageByName(String imageName) {
-    Image image = repository.findByImageFileName(imageName);
-    fileStore.delete(image.getImagePath(), image.getImageFileName());
-    return repository.deleteByImageFileName(imageName);
+    try {
+      Image image = repository.findByImageFileName(imageName);
+      fileStore.delete(image.getImagePath(), image.getImageFileName());
+      Long aLong = repository.deleteByImageFileName(imageName);
+      log.info("deleted image, {}", image);
+
+      return aLong;
+    } catch (Exception e) {
+      log.error("Error deleting image, {}", e.getMessage());
+      throw e;
+    }
   }
 
   @Override
   public List<Image> getAllImages() {
-    List<Image> todos = new ArrayList<>();
-    repository.findAll().forEach(todos::add);
-    return todos;
+    try {
+      List<Image> images = new ArrayList<>();
+      repository.findAll().forEach(images::add);
+      log.info("Images founded, {}", images);
+
+      return images;
+    } catch (Exception e) {
+      log.error("Error deleting image, {}", e.getMessage());
+      throw e;
+    }
   }
 
   @Override
   public byte[] getRandomImage() {
-    List<Image> list = getAllImages();
-    Image image = list.get(new Random().nextInt(list.size()));
-    return fileStore.download(image.getImagePath(), image.getImageFileName());
+    try {
+      List<Image> list = getAllImages();
+      Image image = list.get(new Random().nextInt(list.size()));
+      byte[] download = fileStore.download(image.getImagePath(), image.getImageFileName());
+      log.info("Random image founded, {}", image.getImageFileName());
+
+      return download;
+    } catch (Exception e) {
+      log.error("Error getting random image, {}", e.getMessage());
+      throw e;
+    }
   }
 
   @Override
   public SubscribeResult subscribeEmail(String email) {
-    final SubscribeRequest subscribeRequest = new SubscribeRequest(topicArn, "email", email);
-    return amazonSNSClient.subscribe(subscribeRequest);
+    try {
+      final SubscribeRequest subscribeRequest = new SubscribeRequest(topicArn, "email", email);
+      SubscribeResult subscribe = amazonSNSClient.subscribe(subscribeRequest);
+      log.info("Subscribed with arn, {}", subscribe.getSubscriptionArn());
+
+      return subscribe;
+    } catch (Exception e) {
+      log.error("Error subscribing, {}", e.getMessage());
+      return new SubscribeResult();
+    }
   }
 
   @Override
   public UnsubscribeResult unsubscribeEmail(String email) {
-    ListSubscriptionsResult listResult = amazonSNSClient.listSubscriptions();
-    List<Subscription> subscriptions = listResult.getSubscriptions();
-    String arn = subscriptions.stream()
-            .filter(subs -> subs.getProtocol().equalsIgnoreCase("email") && subs.getEndpoint().equals(email))
-            .findFirst()
-            .map(Subscription::getSubscriptionArn)
-            .orElse("");
+    try {
+      ListSubscriptionsResult listResult = amazonSNSClient.listSubscriptions();
+      List<Subscription> subscriptions = listResult.getSubscriptions();
+      String arn = subscriptions.stream()
+              .filter(subs -> subs.getProtocol().equalsIgnoreCase("email") && subs.getEndpoint().equals(email))
+              .findFirst()
+              .map(Subscription::getSubscriptionArn)
+              .orElse("");
 
-    final UnsubscribeRequest unSubscribeRequest = new UnsubscribeRequest(arn);
-    return amazonSNSClient.unsubscribe(unSubscribeRequest);
+      final UnsubscribeRequest unSubscribeRequest = new UnsubscribeRequest(arn);
+      UnsubscribeResult unsubscribe = amazonSNSClient.unsubscribe(unSubscribeRequest);
+      log.info("Unsubscribed arn, {}", arn);
+
+      return unsubscribe;
+    } catch (Exception e) {
+      log.error("Error unsubscribing, {}", e.getMessage());
+      return new UnsubscribeResult();
+    }
+  }
+
+  @Override
+  public String triggerLambda() {
+    try {
+      InvokeRequest invokeRequest = new InvokeRequest()
+          .withFunctionName(lambdaArn)
+          .withPayload("{\n \"Hello \": \"Paris\",\n}");
+      log.info("invoke lambda {} request, {}", lambdaArn, invokeRequest.toString());
+
+      InvokeResult invokeResult = awsLambdaClient.invoke(invokeRequest);
+      log.info("invoke lambda {} result, {}", lambdaArn, invokeResult.toString());
+
+      return invokeResult.toString();
+    } catch (Exception e) {
+      log.error(e.getMessage());
+      return e.getMessage();
+    }
+
   }
 }
