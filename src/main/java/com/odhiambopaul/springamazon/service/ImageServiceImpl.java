@@ -5,6 +5,9 @@ import static org.apache.http.entity.ContentType.IMAGE_GIF;
 import static org.apache.http.entity.ContentType.IMAGE_JPEG;
 import static org.apache.http.entity.ContentType.IMAGE_PNG;
 
+import com.amazonaws.services.apigateway.AmazonApiGatewayClient;
+import com.amazonaws.services.apigateway.model.GetMethodRequest;
+import com.amazonaws.services.apigateway.model.GetMethodResult;
 import com.amazonaws.services.lambda.AWSLambdaClient;
 import com.amazonaws.services.lambda.model.InvokeRequest;
 import com.amazonaws.services.lambda.model.InvokeResult;
@@ -20,6 +23,7 @@ import com.amazonaws.services.sqs.model.SendMessageRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.odhiambopaul.springamazon.domain.Image;
 import com.odhiambopaul.springamazon.repositories.ImageRepository;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -49,6 +53,8 @@ public class ImageServiceImpl implements ImageService {
   private final AmazonSNSClient amazonSNSClient;
   private final AmazonSQSClient amazonSQSClient;
   private final AWSLambdaClient awsLambdaClient;
+  private final AmazonApiGatewayClient amazonApiGatewayClient;
+
   private final ObjectMapper mapper;
 
 
@@ -214,9 +220,29 @@ public class ImageServiceImpl implements ImageService {
 
       return invokeResult.toString();
     } catch (Exception e) {
-      log.error(e.getMessage());
+      log.error("triggerLambda error - {}", e.getMessage());
       return e.getMessage();
     }
 
+  }
+
+  @Override
+  public String triggerGateway() {
+    try {
+
+      //TODO fix
+      GetMethodRequest methodRequest = new GetMethodRequest();
+      methodRequest.setResourceId("");
+      methodRequest.setRestApiId("");
+      methodRequest.setHttpMethod("");
+
+      GetMethodResult method = amazonApiGatewayClient.getMethod(methodRequest);
+      log.info("triggerGateway result - {}", method.toString());
+
+      return method.toString();
+    } catch (Exception e) {
+      log.error("triggerGateway error - {}", e.getMessage());
+      return e.getMessage();
+    }
   }
 }

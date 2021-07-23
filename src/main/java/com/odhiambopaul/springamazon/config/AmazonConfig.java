@@ -3,6 +3,9 @@ package com.odhiambopaul.springamazon.config;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.services.apigateway.AmazonApiGateway;
+import com.amazonaws.services.apigateway.AmazonApiGatewayClient;
+import com.amazonaws.services.apigateway.AmazonApiGatewayClientBuilder;
 import com.amazonaws.services.lambda.AWSLambdaClient;
 import com.amazonaws.services.lambda.AWSLambdaClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
@@ -81,7 +84,16 @@ public class AmazonConfig {
             .withCredentials(new AWSStaticCredentialsProvider(
                 new BasicAWSCredentials(accessKeyId, secretAccessKey)))
             .build();
+    }
 
+    @Bean
+    public AmazonApiGatewayClient awsApiGatewayClient() {
+        return (AmazonApiGatewayClient) AmazonApiGatewayClientBuilder
+            .standard()
+            .withRegion(region)
+            .withCredentials(new AWSStaticCredentialsProvider(
+                new BasicAWSCredentials(accessKeyId, secretAccessKey)))
+            .build();
     }
 
     @Bean

@@ -84,4 +84,10 @@ public class ImageController {
     log.info("Controller request received - triggerLambda");
     return new ResponseEntity<>(service.triggerLambda(), HttpStatus.OK);
   }
+
+  @GetMapping("/gateway")
+  public ResponseEntity<String> triggerGateway() {
+    log.info("Controller request received - triggerGateway");
+    return new ResponseEntity<>(service.triggerGateway(), HttpStatus.OK);
+  }
 }
