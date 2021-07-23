@@ -61,7 +61,7 @@ public class ImageServiceImpl implements ImageService {
   @Value("${aws.sqs.url}")
   private String sqsUrl;
 
-  @Value("aws.lambda.arn")
+  @Value("${aws.lambda.arn}")
   private String lambdaArn;
 
   @Override
